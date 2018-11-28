@@ -4,17 +4,18 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
-import trabalho_2_threads.modelo.Icon;
+import trabalho_2_threads.modelo.Token;
 import trabalho_2_threads.modelo.Timer;
-import trabalho_2_threads.tela.Game;
-import trabalho_2_threads.tela.MainScreen;
+import trabalho_2_threads.tela.Jogo;
+import trabalho_2_threads.tela.Menu;
+import trabalho_2_threads.util.Constantes;
 
 public class Controlador {
-	private static final Controlador instance = new Controlador();
-	private MainScreen mainScreen;
-	private Game game;
-	private int deadBalls;
-	private ArrayList<Icon> balls;
+	private static final Controlador controlador = new Controlador();
+	private Menu menu;
+	private Jogo jogo;
+	private int tokensInativos;
+;	private ArrayList<Token> tokens;
 	private List<JButton> livres;
 	private List<JButton> ocupados;
 	private Timer timer;
@@ -23,17 +24,20 @@ public class Controlador {
 	private boolean livre = true;
 	
 	public Controlador() {
-            mainScreen = new MainScreen();
-            game = new Game();
-            balls = new ArrayList<>();
+            menu = new Menu();
+            jogo = new Jogo();
+            tokens = new ArrayList<>();
             timer = new Timer();
-            criarThreads();
-            livres = game.getButtons();
+            livres = jogo.getButtons();
             ocupados = new ArrayList<>();
+            
+            for (int i = 0; i < 5; i++) {
+                tokens.add(new Token(0));
+            }
 	}
 
-	public static Controlador getInstance() {
-            return instance;
+	public static Controlador getControlador() {
+            return controlador;
 	}
 
 	private void init() {
@@ -43,103 +47,97 @@ public class Controlador {
                 JButton ocupada = livres.get(pos);
                 livres.remove(ocupada);
                 ocupados.add(ocupada);
-                game.addBolinha(ocupada);
+                jogo.addToken(ocupada);
             }
 	}
 
-	public void facil() {
-            game.setDificuldade("Fácil");
-            game.pack();
-            startThreads(100, 2000);
-	}
-
-	public void medio() {
-            game.setDificuldade("Médio");
-            game.pack();
-            startThreads(50, 1000);
-	}
-
-	public void dificil() {
-            game.setDificuldade("Difícil");
-            game.pack();
-            startThreads(20, 500);
-	}
+        public void jogar(String dificuldade) {
+            jogo.setDificuldade(dificuldade);
+            jogo.pack();
+            
+            switch(dificuldade) {
+                case Constantes.DIFICULDADE_FACIL:
+                    startThreads(100, 2000);
+                    break;
+                case Constantes.DIFICULDADE_MEDIO:
+                    startThreads(50, 1000);
+                    break;
+                case Constantes.DIFICULDADE_DIFICIL:
+                    startThreads(20, 500);
+                    break;
+            }
+        }
 
 	public void start() {
-            mainScreen.pack();
-            mainScreen.setVisible(true);
+            menu.pack();
+            menu.setVisible(true);
 	}
 
 	private synchronized void startThreads(int seg, float speed) {
             init();
-            System.out.println(balls.size());
-            for (Icon ball : balls) {
-                    if (ball.getAlive()) {
-                            ball.setSpeed(speed);
-                            ball.start();
-                    } else {
-                            ball.setSpeed(speed);
-                            ball.setAlive(true);
-                            new Thread(ball).start();
-                    }
+            System.out.println(tokens.size());
+            for (Token token : tokens) {
+                if (token.getAtivo()) {
+                    token.setVelocidade(speed);
+                    token.start();
+                } else {
+                    token.setVelocidade(speed);
+                    token.setAtivo(true);
+                    new Thread(token).start();
+                }
             }
+            
             timer.setTimeSec(seg);
             if (timer.getAlive()) {
-                    timer.start();
+                timer.start();
             } else {
-                    timer.setAlive(true);
-                    new Thread(timer.getCurrentThread()).start();
+                timer.setAlive(true);
+                new Thread(timer.getCurrentThread()).start();
             }
             timer.pack();
             timer.setVisible(true);
-            game.pack();
-            game.setVisible(true);
+            jogo.pack();
+            jogo.setVisible(true);
 	}
 
-	private void criarThreads() {
-            for (int i = 0; i < 5; i++) {
-                    balls.add(new Icon(0));
-            }
-	}
-
-	public synchronized void move() {
+	public synchronized void movimentaTokens() {
             if(livre) {
-                    livre = false;
-                    int pos = (int) (Math.random() * livres.size());
-                    JButton ocupada = livres.get(pos);
-                    livres.remove(ocupada);
-                    ocupados.add(ocupada);
-                    JButton livre = ocupados.get(0);
-                    livres.add(livre);
-                    ocupados.remove(livre);
-                    game.removeBolinha(livre);
-                    game.addBolinha(ocupada);
-                    this.livre = true;
+                livre = false;
+                int pos = (int) (Math.random() * livres.size());
+                JButton ocupada = livres.get(pos);
+                livres.remove(ocupada);
+                ocupados.add(ocupada);
+                JButton livre = ocupados.get(0);
+                livres.add(livre);
+                ocupados.remove(livre);
+                jogo.removeToken(livre);
+                jogo.addToken(ocupada);
+                this.livre = true;
             }
 	}
 
 	public synchronized void exitGame() {
-            killAllThreads();
-            cleanBalls();
+            mataTodasThreads();
+            limpaTokens();
             novaPartida = false;
             index = 0;
-            if (deadBalls >= 5) {
-                    game.informMessage("Você ganhou!");
+            if (tokensInativos >= 5) {
+                    jogo.mostraMensagem("Você ganhou!");
             } else {
-                    game.informMessage("Você perdeu!");
+                    jogo.mostraMensagem("Você perdeu!");
             }
-            deadBalls = 0;
+            tokensInativos = 0;
             limparTela();
 	}
 	
-	private synchronized void cleanBalls() {
-            livres = game.getButtons();
+	private synchronized void limpaTokens() {
+            livres = jogo.getButtons();
             ocupados = new ArrayList<>();
 	}
 
-	private synchronized void killAllThreads() {
-            for (Icon ball : balls) {
-                    ball.setAlive(false);
+	private synchronized void mataTodasThreads() {
+            for (Token token : tokens) {
+                    token.setAtivo(false);
             }
 	}
 
@@ -149,11 +147,11 @@ public class Controlador {
                     for (JButton button : ocupados) {
                             Rectangle bounds = button.getBounds();
                             if (bounds.equals(b.getBounds())) {
-                                    deadBalls += 1;
+                                    tokensInativos += 1;
                                     ocupados.remove(button);
                                     livres.add(button);
-                                    game.removeBolinha(button);
-                                    balls.get(index).setAlive(false);
+                                    jogo.removeToken(button);
+                                    tokens.get(index).setAtivo(false);
                                     index++;
                                     break;
                             }
@@ -166,9 +164,9 @@ public class Controlador {
 	}
 
 	private void limparTela() {
-            game.limparTela();
-            game.setVisible(false);
-            mainScreen.setVisible(true);
+            jogo.limparTela();
+            jogo.setVisible(false);
+            menu.setVisible(true);
 	}
 
 	public boolean isNovaPartida() {
@@ -179,7 +177,7 @@ public class Controlador {
             this.novaPartida = novaPartida;
 	}
 	
-	public int getBalls() {
-            return deadBalls;
+	public int getTokens() {
+            return tokensInativos;
 	}
 }

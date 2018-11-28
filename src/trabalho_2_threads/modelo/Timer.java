@@ -3,10 +3,8 @@ package trabalho_2_threads.modelo;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
-
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-
 import trabalho_2_threads.controlador.Controlador;
 
 @SuppressWarnings("serial")
@@ -19,26 +17,26 @@ public class Timer extends JFrame {
 	private JLabel tempo;
 
 	public Timer() {
-		t = new Time();
-		config();
+            t = new Time();
+            config();
 	}
 
 	private void config() {
-		setTitle("Cronômetro");
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		centerFrame();
+            setTitle("Cronômetro");
+            setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            centerFrame();
 		
-        jcomp1 = new JLabel ("Tempo restante:");
-        tempo = new JLabel ("");
+            jcomp1 = new JLabel ("Tempo restante:");
+            tempo = new JLabel ("");
 
-        setPreferredSize (new Dimension (166, 100));
-        setLayout (null);
+            setPreferredSize (new Dimension (166, 100));
+            setLayout (null);
 
-        add (jcomp1);
-        add (tempo);
+            add (jcomp1);
+            add (tempo);
 
-        jcomp1.setBounds (25, 0, 120, 25);
-        tempo.setBounds (75, 25, 95, 25);
+            jcomp1.setBounds (25, 0, 120, 25);
+            tempo.setBounds (75, 25, 95, 25);
 	}
 
 	public class Time  extends Thread {
@@ -46,7 +44,7 @@ public class Timer extends JFrame {
 		public void run() {
 			while (getAlive()) {
 				timeSec--;
-				tempo.setText(""+timeSec);
+				tempo.setText("" + timeSec);
 				repaint();
 				try {
 					Thread.sleep(1000);
@@ -55,12 +53,12 @@ public class Timer extends JFrame {
 					setAlive(false);
 				}
 			}
-			System.out.println("Thread TIMER " + currentThread().getName() + " morreu");
+			System.out.println("Cronômetro " + currentThread().getName() + " terminou!");
 		}
 	
 		private void verifyTime() {
 			if (timeSec <= 0) {
-				Controlador.getInstance().exitGame();
+				Controlador.getControlador().exitGame();
 				setAlive(false);
 			}
 		}
