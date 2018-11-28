@@ -57,13 +57,13 @@ public class Controlador {
             
             switch(dificuldade) {
                 case Constantes.DIFICULDADE_FACIL:
-                    startThreads(100, 2000);
+                    startThreads(50, 2000);
                     break;
                 case Constantes.DIFICULDADE_MEDIO:
-                    startThreads(50, 1000);
+                    startThreads(25, 1000);
                     break;
                 case Constantes.DIFICULDADE_DIFICIL:
-                    startThreads(20, 500);
+                    startThreads(10, 500);
                     break;
             }
         }
@@ -73,21 +73,21 @@ public class Controlador {
             menu.setVisible(true);
 	}
 
-	private synchronized void startThreads(int seg, float speed) {
+	private synchronized void startThreads(int tempo, float velocidade) {
             init();
             System.out.println(tokens.size());
             for (Token token : tokens) {
                 if (token.getAtivo()) {
-                    token.setVelocidade(speed);
+                    token.setVelocidade(velocidade);
                     token.start();
                 } else {
-                    token.setVelocidade(speed);
+                    token.setVelocidade(velocidade);
                     token.setAtivo(true);
                     new Thread(token).start();
                 }
             }
             
-            timer.setTimeSec(seg);
+            timer.setTimeSec(tempo);
             if (timer.getAlive()) {
                 timer.start();
             } else {

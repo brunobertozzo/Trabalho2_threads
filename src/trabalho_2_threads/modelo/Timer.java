@@ -39,7 +39,7 @@ public class Timer extends JFrame {
             tempo.setBounds (75, 25, 95, 25);
 	}
 
-	public class Time  extends Thread {
+	public class Time extends Thread {
 		@Override
 		public void run() {
 			while (getAlive()) {
