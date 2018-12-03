@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import static java.lang.Thread.currentThread;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
@@ -16,8 +17,16 @@ import javax.swing.JOptionPane;
 import trabalho_2_threads.controlador.Controlador;
 import trabalho_2_threads.util.Constantes;
 
+@SuppressWarnings("serial")
 public class Jogo extends JFrame {
     private JLabel dificuldadeLabel = new JLabel();
+    private int timeSec;
+	private Time t;
+	private boolean alive = true;
+
+	private JLabel labelTempo= new JLabel ("Tempo restante:");
+	private JLabel tempo = new JLabel ("");
+        
     
     private JButton
             pos1 = new JButton(),
@@ -122,13 +131,14 @@ public class Jogo extends JFrame {
             pos81 = new JButton();
 
 	private ActionListener l = new ActionListener() {
-		public void actionPerformed(final ActionEvent e) {
-			Controlador.getControlador().tratarClique((JButton) e.getSource());
-			repaint();
-		}
+            public void actionPerformed(final ActionEvent e) {
+                Controlador.getControlador().tratarClique((JButton) e.getSource());
+                repaint();
+            }
 	};
 	
 	public Jogo() {
+                t = new Time();
 		config();
 		addAction();
 	}
@@ -151,7 +161,7 @@ public class Jogo extends JFrame {
 		add(pos77);add(pos76);add(pos75);add(pos74);add(pos79);add(pos70);add(pos68);add(pos61);add(pos100);
 		add(pos91);add(pos92);add(pos93);add(pos94);add(pos95);add(pos96);add(pos97);add(pos98);add(pos99);
 		add(pos90);add(pos89);add(pos88);add(pos87);add(pos86);add(pos85);add(pos84);add(pos83);add(pos82);
-		add(pos81);add(dificuldadeLabel);
+		add(pos81);add(dificuldadeLabel);add (labelTempo);add (tempo);
                 
 		pos1.setBounds(135, 90, 40, 40);
 		pos3.setBounds(215, 90, 40, 40);
@@ -254,6 +264,9 @@ public class Jogo extends JFrame {
 		pos82.setBounds(175, 410, 40, 40);
 		pos81.setBounds(135, 410, 40, 40);
 		dificuldadeLabel.setBounds(300, 15, 165, 25);
+                labelTempo.setBounds (5, 0, 120, 25);
+                tempo.setBounds (105, 0, 95, 25);
+               
 	}
 	
 	public List<JButton> getButtons() {
@@ -290,7 +303,7 @@ public class Jogo extends JFrame {
 	public void mostraMensagem(String message) {
             JOptionPane.showMessageDialog(null, message, "Aviso", JOptionPane.PLAIN_MESSAGE);
 	}
-
+        
 	public void limparTela() {
             for(JButton button : getButtons()) button.setIcon(null);
             repaint();
@@ -301,4 +314,57 @@ public class Jogo extends JFrame {
         this.dificuldadeLabel.setText(dificuldade);
         this.dificuldadeLabel.setFont(new Font("Serif", Font.BOLD, 32));
     }
+    
+    public class Time extends Thread {
+            @Override
+            public void run() {
+                while (getAlive()) {
+                    timeSec--;
+                    tempo.setText("" + timeSec);
+                    repaint();
+                    try {
+                        Thread.sleep(1000);
+                        verifyTime();
+                    } catch (InterruptedException e) {
+                        setAlive(false);
+                    }
+                }
+                System.out.println("Cronômetro " + currentThread().getName() + " terminou!");
+            }
+
+            private void verifyTime() {
+                if (timeSec <= 0) {
+                    Controlador.getControlador().exitGame();
+                    setAlive(false);
+                }
+            }
+	}
+    
+    public int getTimeSec() {
+            return timeSec;
+	}
+
+	public void setTimeSec(int timeSec) {
+            this.timeSec = timeSec;
+	}
+	
+	public void interrupt() {
+		setAlive(false);
+	}
+
+	public void start() {
+		t.start();
+	}
+
+	public boolean getAlive() {
+		return alive;
+	}
+
+	public void setAlive(boolean alive) {
+		this.alive = alive;
+	}
+
+	public Time getCurrentThread() {
+		return t;
+	}
 }

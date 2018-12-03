@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
 import trabalho_2_threads.modelo.Token;
-import trabalho_2_threads.modelo.Timer;
 import trabalho_2_threads.tela.Jogo;
 import trabalho_2_threads.tela.Menu;
 import trabalho_2_threads.util.Constantes;
@@ -15,10 +14,10 @@ public class Controlador {
 	private Menu menu;
 	private Jogo jogo;
 	private int tokensInativos;
-;	private ArrayList<Token> tokens;
+	private ArrayList<Token> tokens;
 	private List<JButton> livres;
 	private List<JButton> ocupados;
-	private Timer timer;
+	
 	private boolean novaPartida = true;
 	private int index = 0;
 	private boolean livre = true;
@@ -27,7 +26,6 @@ public class Controlador {
             menu = new Menu();
             jogo = new Jogo();
             tokens = new ArrayList<>();
-            timer = new Timer();
             livres = jogo.getButtons();
             ocupados = new ArrayList<>();
             
@@ -87,15 +85,15 @@ public class Controlador {
                 }
             }
             
-            timer.setTimeSec(tempo);
-            if (timer.getAlive()) {
-                timer.start();
+            jogo.setTimeSec(tempo);
+            if (jogo.getAlive()) {
+                jogo.start();
             } else {
-                timer.setAlive(true);
-                new Thread(timer.getCurrentThread()).start();
+                jogo.setAlive(true);
+                new Thread(jogo.getCurrentThread()).start();
             }
-            timer.pack();
-            timer.setVisible(true);
+            //jogo.pack();
+            //timer.setVisible(true);
             jogo.pack();
             jogo.setVisible(true);
 	}
@@ -127,6 +125,7 @@ public class Controlador {
                     jogo.mostraMensagem("Você perdeu!");
             }
             tokensInativos = 0;
+            jogo.interrupt();
             limparTela();
 	}
 	
